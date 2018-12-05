@@ -5,63 +5,47 @@ import { connect } from "react-redux";
 class CounterGroup extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      // counterSum: 0,   move this state to ./reducer which can do the data logic and return the new state to mapStateToProps
-      counterArr: new Array(parseInt(this.props.defaultCount))
-        .fill(0)
-        .map(() => ({ count: 0, id: this.generateID() }))
-    };
+    this.props.dispatch({
+      type: "GENERATE_COUNTERS",
+      payload: parseInt(this.props.defaultCount)
+    });
   }
 
-  generateID = () => {
-    return new Date().getTime() + Math.random();
-  };
-
   regenrateCounters = () => {
-    this.setState({
-      counterArr: new Array(parseInt(this.refs.countInput.value))
-        .fill(0)
-        .map(() => ({ count: 0, id: this.generateID() })),
-      counterSum: 0
+    this.props.dispatch({
+      type: "GENERATE_COUNTERS",
+      payload: parseInt(this.refs.countInput.value)
     });
   };
 
   counterUpdateCallback = changedNum => {
     // this.setState({ counterSum: this.state.counterSum + changedNum });
-    this.props.dispatch({ //this dispatch will wuto inject by connect() method
+    this.props.dispatch({
+      //this dispatch will wuto inject by connect() method
       type: "COUNTERSUM",
       payload: changedNum
     }); //{type: "", payload: xxx} named action, it will bo translated to ./reducer
   };
 
   increaseNumber = (changedNum, id) => {
-    const changedArr = this.state.counterArr.map(counterItem => {
-      if (counterItem.id === id) {
-        return { id: id, count: counterItem.count + changedNum };
-      } else {
-        return counterItem;
-      }
+    this.props.dispatch({
+      type: "INCREASE_ONE_COUNTER",
+      payload: { changedNum, id }
     });
-
-    this.setState({ counterArr: [...changedArr] });
   };
 
   decreaseNumber = (changedNum, id) => {
-    const changedArr = this.state.counterArr.map(counterItem => {
-      if (counterItem.id === id) {
-        return { id: id, count: counterItem.count - changedNum };
-      } else {
-        return counterItem;
-      }
+    this.props.dispatch({
+      type: "DECREASE_ONE_COUNTER",
+      payload: { changedNum, id }
     });
-
-    this.setState({ counterArr: [...changedArr] });
   };
 
   render() {
+    console.log(this.props.counterItems);
     return (
       <div>
-        {this.state.counterArr.map(counterItem => (
+        {this.props.counterItems.map(counterItem => (
           <Counter
             key={counterItem.id}
             id={counterItem.id}
@@ -83,11 +67,10 @@ class CounterGroup extends Component {
 }
 
 const mapStateToProps = state => ({
-  counterSum: state.counterSum
-}); 
+  counterSum: state.counterSum,
+  counterItems: state.counterItems
+});
 // counterSum is a prop in CounterGroup, it will give counterSum a new value of state.counterSum whitch come from ./reducer switch return
 // you try to imagine counterSum will be passed to this.props.counterSum in CounterGroup like the result of <CounterGroup counterSum={state.counterSum}/>
 
-connect(mapStateToProps)(CounterGroup)
-
-export default connect(mapStateToProps)(CounterGroup);//let CounterGroup and Redux know each other
+export default connect(mapStateToProps)(CounterGroup); //let CounterGroup and Redux know each other
